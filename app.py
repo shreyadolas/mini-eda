@@ -3,6 +3,14 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
+
+from google import genai
+
+client = genai.Client()
+
+
+
+
 st.set_page_config(page_title="Mini EDA App", layout="wide")
 
 
@@ -23,6 +31,7 @@ if uploaded_file:
 
     #Sidebar
     st.sidebar.title("Navigation")
+
     option = st.sidebar.radio(
         "Go To",
         [
@@ -32,7 +41,7 @@ if uploaded_file:
             "Statistics",
             "Correlation",
             "Distribution",
-            #AI Pandas Assistant"
+            "AI Pandas Assistant"
         ]
     )
 
@@ -133,6 +142,69 @@ if uploaded_file:
 
 
             st.pyplot(fig)
+
+# -----------------------------
+# AI Pandas Assistant
+# -----------------------------
+    elif option == "AI Pandas Assistant":
+
+        st.subheader("🤖 AI Pandas Code Generator")
+
+
+    user_query = st.text_input(
+        "What analysis do you want to perform?",
+        placeholder="Example: Show average salary department-wise"
+    )
+
+
+    if st.button("Generate Pandas Code"):
+
+
+        if user_query.strip() == "":
+            st.warning("Please enter a query.")
+
+
+        else:
+
+
+            prompt = f"""
+            You are an expert Python Data Analyst.
+
+
+            Dataset Columns:
+            {list(df.columns)}
+
+
+            Data Types:
+            {df.dtypes.to_string()}
+
+
+            User Request:
+            {user_query}
+
+
+            Rules:
+            1. Generate ONLY executable pandas code.
+            2. Assume the dataframe name is df.
+            3. Do not explain anything.
+            4. Do not use markdown.
+            5. Return only Python code.
+            """
+
+
+            with st.spinner("Generating Code..."):
+
+
+                response = client.models.generate_content(
+                    model="gemini-3.6-flash",
+                    contents=prompt
+                    )
+
+
+            st.success("Generated Pandas Code")
+
+
+            st.code(response.text, language="python")
 
 
 else:
